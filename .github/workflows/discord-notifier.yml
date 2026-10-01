@@ -1,29 +1,15 @@
 name: Discord Notifier
 
-on: [push]
+on: [push] # This triggers the bot on every code push
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check out the code so the script can see the repository files
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      # Step 2: Track exactly which files changed in this push
-      - name: Check for file changes
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          list-files: 'shell' # Formats the files into a clean list
-
-      # Step 3: Send the detailed list to your Servo-Skull Discord Webhook
       - name: Send Message to Discord
         run: |
-          # Clean up formatting: replace spaces with newlines and add a dash for Discord bullet points
-          FORMATTED_CHANGES=$(echo "${{ steps.changes.outputs.changes_files }}" | tr ' ' '\n' | sed 's/^/- /')
-
           curl -H "Content-Type: application/json" \
           -X POST \
-          -d "{\"content\": \"**Update:** New code has been pushed by **${{ github.actor }}**!\n\n**Commit Message:**\n> ${{ github.event.head_commit.message }}\n\n**Where changes occurred:**\n${FORMATTED_CHANGES}\"}" \
+          -d '{"content": "**Update:** New code has been pushed to the repository by ${{ github.actor }}! \nCommit: ${{ github.event.head_commit.message }}"}' \
           ${{ secrets.DISCORD_WEBHOOK }}
+
