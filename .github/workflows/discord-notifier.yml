@@ -10,6 +10,6 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -X POST \
-          -d '{"content": "**Update:** New code has been pushed to the repository by ${{ github.actor }}! \n\n**Commit:** ${{ github.event.head_commit.message }}"}' \
+          -d '{"content": "**Update:** New code has been pushed to the repository by ${{ github.actor }}! \n**Commit:** ${{ github.event.head_commit.message }}"}' \
           ${{ secrets.DISCORD_WEBHOOK }}
 
