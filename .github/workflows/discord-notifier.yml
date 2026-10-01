@@ -10,5 +10,5 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -X POST \
-          -d '{"content": "💀 **Servo-Skull Update:** New code has been pushed to the repository by ${{ github.actor }}! \nCommit: ${{ github.event.head_commit.message }}"}' \
+          -d '{"content": "**Update:** New code has been pushed to the repository by ${{ github.actor }}! \nCommit: ${{ github.event.head_commit.message }}"}' \
           ${{ secrets.DISCORD_WEBHOOK }}
