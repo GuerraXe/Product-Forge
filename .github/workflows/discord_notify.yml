@@ -15,7 +15,7 @@ jobs:
                -X POST \
                -d '{
                  "username": "Servo Skull",
-                 "avatar_url": "https://discordapp.com",
+                 "avatar_url": "https://cdn.discordapp.com/avatars/1555043047304208475/65ba2ff30cc1dcce15fab9c0c8df7840.webp?size=320",
                  "embeds": [
                    {
                      "title": "🛠️ New Code Pushed to Product-Forge",
