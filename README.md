@@ -1,5 +1,5 @@
 # Product-Forge
-A credible,  website for free, user-friendly rapid prototyping. test
+A credible,  website for free, user-friendly rapid prototyping.
 
 ## Description
 
