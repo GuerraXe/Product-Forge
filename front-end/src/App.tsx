@@ -1,8 +1,12 @@
+import ForgeCanvas from "./ForgeCanvas";
 
 function App() {
 
   return (
-   <p>Product Forge</p>
+    <div>
+        <p>Product Forge</p>
+        <ForgeCanvas />
+    </div>
   )
 }
 
