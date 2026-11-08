@@ -1,0 +1,72 @@
+:root {
+  --line: #000000;
+  --panel-border: 1px solid var(--line);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: #000000;
+  background: #ffffff;
+}
+
+.workspace {
+  min-height: 100vh;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 42px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  border: var(--panel-border);
+  flex-shrink: 0;
+}
+
+.no-top {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 38px;
+  padding: 28px 0 24px;
+}
+
+.control-panel {
+  border: var(--panel-border);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.scene-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-frame {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  overflow: hidden;
+  border: var(--panel-border);
+  background: var(--surface);
+}
+
+.scene-canvas { position: absolute; inset: 0; }
+
+.results-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border: var(--panel-border);
+  display: flex;
+  align-items: center;
+}
