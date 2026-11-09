@@ -43,6 +43,7 @@ body {
   border: var(--panel-border);
   padding: 20px;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
 }
 
