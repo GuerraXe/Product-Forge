@@ -1,49 +1,151 @@
-export function ControlPanel() {
+import { useRef } from "react";
+import { Vector3 } from "three";
+import * as Part from "../lib/types";
+import { partMaterialKeys } from "../lib/types";
+import type { PartMaterial } from "../lib/types";
+
+// tracking selected part should be done in parent
+export interface Callbacks {
+  onAddPart: (shape: Part.Shape | undefined) => void,
+  onDeletePart: () => void, 
+  onSetPosition: (pos: Vector3) => void,
+  onSetRotation: (rot: Vector3) => void,
+  onSetScale: (scl: Vector3) => void,
+  onSetMaterial: (partMaterial: PartMaterial) => void,
+};
+
+interface ControlPanelProps {
+  callbacks: Callbacks;
+  selectedPart: Part.Part | null;
+}
+
+export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
+  const selectedNewPartShape = useRef<Part.Shape>("cube");
+
+  const onNewPartChange = (value : string) => {
+    // programming war crime, but wow, code analysis has gotten crazy
+    value = value.toLowerCase();
+    switch(value) {
+    case "cube":
+    case "sphere":
+    case "cylinder":
+      selectedNewPartShape.current = value;
+      break;
+    default:
+      // fallback. should probably print an error message
+      selectedNewPartShape.current = "cube";
+      break;
+    }
+  };
+
+  const onMaterialChange = (value: string) => {
+    // fragile
+    const key = value as Part.PartMaterialKey;
+    callbacks.onSetMaterial(Part.partMaterials[key]);
+  }
+
+
+  type Axis = 'x' | 'y' | 'z';
+
+  const onPosChange = (axis: Axis, rawVal: string) => {
+    if (!selectedPart) return;
+    // Fallback
+    const num = parseFloat(rawVal);
+    const value = Number.isNaN(num) ? 0 : num;
+    const next = selectedPart.position.clone();
+    next[axis] = value;
+    callbacks.onSetPosition(next);
+  };
+
+  const onRotChange = (axis: Axis, rawVal: string) => {
+    if (!selectedPart) return;
+    // Fallback
+    const num = parseFloat(rawVal);
+    const value = Number.isNaN(num) ? 0 : num;
+    const next = selectedPart.rotation.clone();
+    next[axis] = value;
+    callbacks.onSetRotation(next);
+  };
+
+  const onSclChange = (axis: Axis, rawVal: string) => {
+    if (!selectedPart) return;
+    // Fallback
+    const num = parseFloat(rawVal);
+    const value = Number.isNaN(num) ? 0 : num;
+    const next = selectedPart.scale.clone();
+    next[axis] = value;
+    callbacks.onSetRotation(next);
+  };
+
+  const vec3Fields = (prop: "position" | "rotation" | "scale", onChange: (axis: Axis, rawVal: string) => void) => {
+    return (['x', 'y', 'z'] as Axis[]).map( axis =>
+      <label>{axis}:&nbsp;<input 
+        type="number"
+        step="0.1"
+        value={selectedPart ? selectedPart[prop][axis] : ""}
+        onChange={e => onChange(axis as Axis, e.target.value)}
+      /></label>
+    )
+  }
+
+  
+
   return (
   <section className="control-panel">
-    <p>Dummy text</p>
+    <h2>Control Panel</h2>
 
-    <p>Actions</p>
-    <button>Add</button>
-    <select>
-      <option>None selected</option>
-      <option>Cube</option>
-      <option>Sphere</option>
-      <option>Cylinder</option>
-    </select>
-    <button>Delete</button>
+    <section className="sub-panel">
+      <h3>Actions</h3>
+      <fieldset className="add-mesh">
+        <legend>New Part</legend>
+        <select onChange={e => onNewPartChange(e.target.value)}>
+          <option disabled>--Select Shape--</option>
+          <option value="cube">Cube</option>
+          <option value="sphere">Sphere</option>
+          <option value="cylinder">Cylinder</option>
+        </select>
+        <button onClick={() => callbacks.onAddPart(selectedNewPartShape.current)}>Add</button>
+      </fieldset>
+    </section>
 
-    <p>Properties</p>
-    <fieldset>
-      <legend>Position</legend>
-      <label>x: <input type="number"/></label>
-      <label>y: <input type="number"/></label>
-      <label>z: <input type="number"/></label>
+    <fieldset className="sub-panel">
+      <legend>Selected</legend>
+      <span className="field">{selectedPart?.name || "None"}</span>
+      <button onClick={callbacks.onDeletePart} disabled={!selectedPart}>Delete</button>
     </fieldset>
-    {/* TODO: format rotation as euler angles in degrees for now */}
-    <fieldset>
-      <legend>Rotation</legend>
-      <label>x: <input type="number"/></label>
-      <label>y: <input type="number"/></label>
-      <label>z: <input type="number"/></label>
-    </fieldset>
+    
+    <section>
+      <h3>Properties</h3>
+      <fieldset disabled={!selectedPart}>
+        <legend>Position</legend>
+        {vec3Fields("position", onPosChange)}
+      </fieldset>
+      {/* TODO: format rotation as euler angles in degrees for now */}
+      <fieldset disabled={!selectedPart}>
+        <legend>Rotation</legend>
+        {vec3Fields("rotation", onRotChange)}
+      </fieldset>
 
-    <fieldset>
-      <legend>Scale</legend>
-      <label>x: <input type="number"/></label>
-      <label>y: <input type="number"/></label>
-      <label>z: <input type="number"/></label>
-    </fieldset>
+      <fieldset disabled={!selectedPart}>
+        <legend>Scale</legend>
+        {vec3Fields("scale", onSclChange)}
+      </fieldset>
 
-    {/* TODO: auto-populate with materials from JSON for now  */}
-    <label htmlFor="material-select">Material :</label>
-    <select id="material-select">
-      <option value="">--Select Material--</option>
-      <option value="1">1</option>
-      <option value="1">2</option>
-      <option value="1">3</option>
-    </select>
-
+      {/* TODO: auto-populate with materials from JSON for now  */}
+      <label htmlFor="material-select">Material:&nbsp;</label>
+      <select 
+        id="material-select" 
+        disabled={!selectedPart}
+        onChange={e => onMaterialChange(e.target.value)}
+      >
+        <option value="" disabled>--Select Material--</option>
+        {partMaterialKeys.map(key => 
+          (<option value={key}> 
+            {key.charAt(0).toUpperCase() + key.slice(1)} 
+          </option>)
+        )}
+      </select>
+    </section>
   </section>
   );
 
