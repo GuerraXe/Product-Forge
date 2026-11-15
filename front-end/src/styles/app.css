@@ -14,7 +14,7 @@ body {
 }
 
 .workspace {
-  min-height: 100vh;
+  max-height: 100vh;
   max-width: 1800px;
   margin: 0 auto;
   padding: 0 42px 20px;
@@ -39,13 +39,56 @@ body {
   padding: 28px 0 24px;
 }
 
+
+/* Control Panel */
+
 .control-panel {
   border: var(--panel-border);
   padding: 20px;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
+  max-height: calc(100vh - 76px);
+  overflow-y: auto;
 }
+
+.control-panel h2,
+.control-panel h3 {
+  display: block;
+  margin: 0 0 5px 0;
+  padding: 0;
+  width: 100%;
+}
+.control-panel h2 {
+  font-size: 1.25rem;
+}
+.control-panel h3 {
+  font-size: 1.125rem;
+}
+
+.control-panel fieldset {
+  margin-bottom: 1rem;
+}
+
+.control-panel .actions {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.control-panel .field {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  padding: .75  rem;
+  margin: 0 0 .5rem 0;
+  background-color: #eeeeee;
+}
+
+.control-panel .sub-panel {
+  width: 100%;
+}
+
+/* / */
 
 .scene-column {
   min-width: 0;
