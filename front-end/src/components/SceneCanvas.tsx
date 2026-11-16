@@ -5,11 +5,13 @@ import materials from '../materials.json'
 import { partMaterials, type Part } from '../lib/types';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as drei from '@react-three/drei';
+import { select } from 'three/tsl';
 
 interface SceneCanvasProps {
   selectedId: string | null;
   onSelectPart: (id: string | null) => void;
   parts: Part[];
+  transformMode: "translate" | "rotate" | "scale" | undefined;
 
   // propagate changes up for control panel
   onSetPosition: (id: string, pos: THREE.Vector3) => void,
@@ -96,18 +98,18 @@ function Vector3ToEuler(vec: THREE.Vector3) {
   return new THREE.Euler(vec.x, vec.y, vec.z);
 }
 
-
-
 export function SceneCanvas(props: SceneCanvasProps) {
   // const camera = new THREE.PerspectiveCamera(45);
   // camera.position.set(10, 7, 10);
 
   interface PartModelArgs {
     part: Part; 
+    isSelected: boolean;
+    mode: "translate" | "rotate" | "scale" | undefined;
     onSelect: (id: string) => void 
   }
 
-  function PartModel({ part, onSelect }: PartModelArgs) {
+  function PartModel({ part, isSelected, mode, onSelect }: PartModelArgs) {
     const meshRef = useRef<THREE.Mesh>(null!);
 
     const onChange = () => {
@@ -118,41 +120,55 @@ export function SceneCanvas(props: SceneCanvasProps) {
     }
 
     // bypass having more messy prop drilling 
+    // this is incredibly jank
     useFrame(() => {
-      if (!meshRef.current) return;
+      if (!(meshRef.current)) return;
 
-      meshRef.current.position.x = part.position.x;
-      meshRef.current.position.y = part.position.y;
-      meshRef.current.position.z = part.position.z;
+      part.position.x = meshRef.current.position.x;
+      part.position.y = meshRef.current.position.y;
+      part.position.z = meshRef.current.position.z;
 
-      meshRef.current.rotation.x = part.rotation.x;
-      meshRef.current.rotation.y = part.rotation.y;
-      meshRef.current.rotation.z = part.rotation.z;
+      part.rotation.x = meshRef.current.rotation.x;
+      part.rotation.y = meshRef.current.rotation.y;
+      part.rotation.z = meshRef.current.rotation.z;
 
-      meshRef.current.scale.x = part.scale.x;
-      meshRef.current.scale.y = part.scale.y;
-      meshRef.current.scale.z = part.scale.z;
+      part.scale.x = meshRef.current.scale.x;
+      part.scale.y = meshRef.current.scale.y;
+      part.scale.z = meshRef.current.scale.z;
     })
 
     return (
-      <mesh 
-        key={part.id} 
-        ref={meshRef}
-        position={part.position}
-        rotation={Vector3ToEuler(part.rotation)}
-        scale={part.scale}
-        onClick={ e => { e.stopPropagation(); onSelect(part.id) } }
-      >
-        <meshStandardMaterial color={partMaterials[part.material].color}/>
-        {createPartGeometry(part)}
-        {/* attaching transform controls TBD */}  
-      </mesh>
+      <>
+        <mesh 
+          key={part.id} 
+          ref={meshRef}
+          position={part.position}
+          rotation={Vector3ToEuler(part.rotation)}
+          scale={part.scale}
+          onClick={ e => { e.stopPropagation(); onSelect(part.id) } }
+        >
+          <meshStandardMaterial color={partMaterials[part.material].color}/>
+          {createPartGeometry(part)}
+        </mesh>
+        {isSelected && (
+          <drei.TransformControls 
+            object={meshRef}
+            mode={mode}
+            onObjectChange={onChange}
+          />
+        )}  
+      </>
     );
   }
+
+  const getTarget = () => {
+
+  };
 
   return (
     <Canvas 
       onPointerMissed={() => props.onSelectPart(null)}
+      onKeyDown={e => console.log(e.key)}
       // camera={camera}
     >
       <axesHelper args={[5]}/>
@@ -164,7 +180,13 @@ export function SceneCanvas(props: SceneCanvasProps) {
         maxPolarAngle={Math.PI}
         enableDamping={false}
       />
-      { props.parts.map( part => <PartModel part={part} onSelect={props.onSelectPart} /> ) }
+      { props.parts.map( part => 
+        <PartModel 
+          part={part} 
+          isSelected={part.id == props.selectedId}
+          mode={props.transformMode}
+          onSelect={props.onSelectPart} 
+        /> ) }
     </Canvas>
   );
 }

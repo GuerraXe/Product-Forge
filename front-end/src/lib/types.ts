@@ -12,6 +12,8 @@ export const partMaterialKeys = Object.keys(partMaterials) as PartMaterialKey[];
 
 export type Shape = "cube" | "sphere" | "cylinder";
 
+export type TransformMode = "translate" | "rotate" | "scale" | undefined;
+
 const DEFAULT_ALPHABET =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
