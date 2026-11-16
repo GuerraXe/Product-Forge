@@ -1,15 +1,12 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import materials from '../materials.json'
-import { partMaterials, type Part } from '../lib/types';
+import { type Part } from '../lib/types';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as drei from '@react-three/drei';
-import { select } from 'three/tsl';
 
 interface SceneCanvasProps {
   selectedId: string | null;
-  onSelectPart: (id: string | null) => void;
+  onSelectPart: (part: Part | null) => void;
   parts: Part[];
   transformMode: "translate" | "rotate" | "scale" | undefined;
 
@@ -18,71 +15,11 @@ interface SceneCanvasProps {
   onSetRotation: (id: string, rot: THREE.Vector3) => void,
   onSetScale: (id: string, scl: THREE.Vector3) => void,
 }
-/*
-export function SceneCanvas() {
-  const host = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (!host.current) return
-
-    //Background and Light
-    const scene = new THREE.Scene()
-    scene.background = new THREE.Color('#f5f7f8')
-    scene.add(new THREE.AmbientLight('#ffffff', 3))
-
-    //Axes and Cube
-    const axes = new THREE.AxesHelper(5)
-    scene.add(axes)
-    const shape = new THREE.Mesh(
-      new THREE.BoxGeometry(3, 2, 3),
-      new THREE.MeshStandardMaterial({ color: materials.plastic.color }),
-    )
-    shape.position.y = 1
-    scene.add(shape)
-
-    //Camera
-    const camera = new THREE.PerspectiveCamera(35)
-    camera.position.set(10, 7, 10)
-
-    //Renderer
-    const renderer = new THREE.WebGLRenderer()
-    host.current.appendChild(renderer.domElement)
-
-    //Drag and move for camera along with zoom
-    const controls = new OrbitControls(camera, renderer.domElement)
-    controls.target.set(0, 1, 0)
-    controls.maxPolarAngle = Math.PI
-
-    //Watches div size to handle resizes
-    const resize = () => {
-      const width = host.current?.clientWidth
-      const height = host.current?.clientHeight
-      if (!width || !height) return
-      camera.aspect = width / height
-      camera.updateProjectionMatrix()
-      renderer.setSize(width, height)
-    }
-    const observer = new ResizeObserver(resize)
-    observer.observe(host.current)
-    resize()
-
-    //The render loop that recursively draws the canvas
-    const render = () => {
-      controls.update()
-      renderer.render(scene, camera)
-      requestAnimationFrame(render)
-    }
-    render()
-
-  }, [])
-
-  return <div className="scene-canvas" ref={host} />
-}
-*/
 function createPartGeometry(part: Part) {
   switch (part.shape) {
   case 'cube':
-    return (<boxGeometry args={[1, 1, 1]}/>);
+    return (<boxGeometry args={[2, 2, 2]}/>);
   case 'sphere':
     // radius, w and h segments
     return (<sphereGeometry args={[1, 32, 32]}/>);
@@ -106,21 +43,16 @@ export function SceneCanvas(props: SceneCanvasProps) {
     part: Part; 
     isSelected: boolean;
     mode: "translate" | "rotate" | "scale" | undefined;
-    onSelect: (id: string) => void 
+    onSelect: (part: Part) => void 
   }
 
   function PartModel({ part, isSelected, mode, onSelect }: PartModelArgs) {
     const meshRef = useRef<THREE.Mesh>(null!);
 
-    const onChange = () => {
-      if (!meshRef.current) return;
-      props.onSetPosition(part.id, part.position);
-      props.onSetRotation(part.id, part.rotation);
-      props.onSetScale(part.id, part.scale);
-    }
-
     // bypass having more messy prop drilling 
-    // this is incredibly jank
+    // by prioritizing rendered mesh transforms over
+    // data transforms
+    // this is incredibly jank, but makes transformsControls work
     useFrame(() => {
       if (!(meshRef.current)) return;
 
@@ -145,25 +77,20 @@ export function SceneCanvas(props: SceneCanvasProps) {
           position={part.position}
           rotation={Vector3ToEuler(part.rotation)}
           scale={part.scale}
-          onClick={ e => { e.stopPropagation(); onSelect(part.id) } }
+          onClick={ e => { e.stopPropagation(); onSelect(part) } }
         >
-          <meshStandardMaterial color={partMaterials[part.material].color}/>
+          <meshStandardMaterial color={part.material.color}/>
           {createPartGeometry(part)}
         </mesh>
         {isSelected && (
           <drei.TransformControls 
             object={meshRef}
             mode={mode}
-            onObjectChange={onChange}
           />
         )}  
       </>
     );
   }
-
-  const getTarget = () => {
-
-  };
 
   return (
     <Canvas 
@@ -176,7 +103,6 @@ export function SceneCanvas(props: SceneCanvasProps) {
       <directionalLight position={[0, 1000000, 0]} intensity={1}/>
       <drei.OrbitControls 
         makeDefault 
-        target={new THREE.Vector3(0, 1, 0)}
         maxPolarAngle={Math.PI}
         enableDamping={false}
       />

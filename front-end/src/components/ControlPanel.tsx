@@ -1,42 +1,35 @@
-import { useRef } from "react";
-import { Vector3 } from "three";
+import { useState, type Dispatch } from "react";
 import * as Part from "../lib/types";
 import { partMaterialKeys } from "../lib/types";
-import type { PartMaterial } from "../lib/types";
+import type { AppAction } from "../App";
 
-// tracking selected part should be done in parent
-export interface Callbacks {
-  onAddPart: (shape: Part.Shape | undefined) => void,
-  onDeletePart: () => void, 
-  onSetPosition: (pos: Vector3) => void,
-  onSetRotation: (rot: Vector3) => void,
-  onSetScale: (scl: Vector3) => void,
-  onSetMaterial: (partMaterial: PartMaterial) => void,
-};
+// tracking selected part should be done in parent.
+// it is not good to also keep a copy of selected part's state
+// in the control panel, because then that needs to be synced 
+
+type Axis = 'x' | 'y' | 'z';
+type VectorProperty = "position" | "rotation" | "scale";
 
 interface ControlPanelProps {
-  callbacks: Callbacks;
+  dispatch: Dispatch<AppAction>;
   selectedPart: Part.Part | null;
 }
 
-
-// TODO: adding or selecting a part should update fields in control panel 
-// (selectedPart value updates as it is a state)
-export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
-  const selectedNewPartShape = useRef<Part.Shape>("cube");
+export function ControlPanel( { dispatch, selectedPart } : ControlPanelProps) {
+  // const selectedNewPartShape = useRef<Part.Shape>("cube");
+  const [newPartShape, setNewPartShape] = useState<Part.Shape>("cube");
 
   const onNewPartChange = (value : string) => {
-    // programming war crime, but wow, code analysis has gotten crazy
     value = value.toLowerCase();
     switch(value) {
     case "cube":
     case "sphere":
     case "cylinder":
-      selectedNewPartShape.current = value;
+      setNewPartShape(value);
       break;
     default:
-      // fallback. should probably print an error message
-      selectedNewPartShape.current = "cube";
+      // fallback
+      setNewPartShape("cube");
       break;
     }
   };
@@ -44,49 +37,52 @@ export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
   const onMaterialChange = (value: string) => {
     // fragile
     const key = value as Part.PartMaterialKey;
-    callbacks.onSetMaterial(Part.partMaterials[key]);
+    dispatch({type: "setMaterial", name: key, material: Part.partMaterials[key]});
   }
 
-
-  type Axis = 'x' | 'y' | 'z';
-
-  const onPosChange = (axis: Axis, rawVal: string) => {
+  // callback using the dispatches defined in app.tsx
+  const onVecPropChange = (prop: VectorProperty, axis: Axis, input: string) => {
     if (!selectedPart) return;
-    const num = parseFloat(rawVal);
+    const num = parseFloat(input);
     if (Number.isNaN(num)) return;
-    const next = selectedPart.position.clone();
+
+    const next = selectedPart[prop].clone();
     next[axis] = num;
-    callbacks.onSetPosition(next);
+
+    switch(prop) {
+      case "position": {
+        dispatch({type: "setPosition", pos: next});
+        break;
+      }
+      case "rotation": {
+        dispatch({type: "setRotation", rot: next});
+        break;
+      }
+      case "scale": {
+        dispatch({type: "setScale", scl: next});
+        break;
+      }
+      default: {
+        console.error("dispatch not defined for prop:", prop);
+        break;
+      }
+    }
   };
 
-  const onRotChange = (axis: Axis, rawVal: string) => {
-    if (!selectedPart) return;
-    const num = parseFloat(rawVal);
-    if (Number.isNaN(num)) return;
-    const next = selectedPart.rotation.clone();
-    next[axis] = num;
-    callbacks.onSetRotation(next);
-  };
-
-  const onSclChange = (axis: Axis, rawVal: string) => {
-    if (!selectedPart) return;
-    const num = parseFloat(rawVal);
-    if (Number.isNaN(num)) return;
-    const next = selectedPart.scale.clone();
-    next[axis] = num;
-    callbacks.onSetScale(next);
-  };
-
-  const vec3Fields = (prop: "position" | "rotation" | "scale", onChange: (axis: Axis, rawVal: string) => void) => {
+  // auto-generate input fields for vector properties 
+  const vec3Fields = (prop: VectorProperty) => {
     return (['x', 'y', 'z'] as Axis[]).map( axis =>
-      <label key={axis}>{axis}:&nbsp;<input 
-        type="number"
-        step={0.1}
-        defaultValue={selectedPart ? selectedPart[prop][axis] : ""}
-        onChange={e => {
-          onChange(axis as Axis, e.target.value);
-        }}
-      /></label>
+      <label key={axis}>
+        {axis}:&nbsp;
+        <input 
+          type="number"
+          step={0.1}
+          value={selectedPart ? selectedPart[prop][axis] : ""}
+          onChange={e => {
+            onVecPropChange(prop, axis, e.target.value);
+          }}
+        />
+      </label>
     )
   }
 
@@ -106,39 +102,38 @@ export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
           <option value="sphere">Sphere</option>
           <option value="cylinder">Cylinder</option>
         </select>
-        <button onClick={() => callbacks.onAddPart(selectedNewPartShape.current)}>Add</button>
+        <button onClick={() => dispatch({type: "addPart", shape: newPartShape})}>Add</button>
       </fieldset>
     </section>
 
     <fieldset className="sub-panel">
       <legend>Selected</legend>
       <span className="field">{selectedPart?.name || "None"}</span>
-      <button onClick={callbacks.onDeletePart} disabled={!selectedPart}>Delete</button>
+      <button onClick={() => dispatch({type: "deletePart"})} disabled={!selectedPart}>Delete</button>
     </fieldset>
     
     <section>
       <h3>Properties</h3>
       <fieldset disabled={!selectedPart}>
         <legend>Position</legend>
-        {vec3Fields("position", onPosChange)}
+        {vec3Fields("position")}
       </fieldset>
-      {/* TODO: format rotation as euler angles in radians for now */}
       <fieldset disabled={!selectedPart}>
         <legend>Rotation</legend>
-        {vec3Fields("rotation", onRotChange)}
+        {vec3Fields("rotation")}
       </fieldset>
 
       <fieldset disabled={!selectedPart}>
         <legend>Scale</legend>
-        {vec3Fields("scale", onSclChange)}
+        {vec3Fields("scale")}
       </fieldset>
 
-      {/* TODO: auto-populate with materials from JSON for now  */}
+      {/* auto-populate with materials from JSON for now  */}
       <label htmlFor="material-select">Material:&nbsp;</label>
       <select 
         id="material-select" 
         disabled={!selectedPart}
-        value={selectedPart ? selectedPart.material : ""}
+        value={selectedPart ? selectedPart.materialName : ""}
         onChange={e => onMaterialChange(e.target.value)}
       >
         <option value="" disabled>--Select Material--</option>
@@ -152,11 +147,11 @@ export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
   </section>
   );
 
-  // object controls for dragging
-  // might have to modify canvas?
-  // adding a new shape? dropdown for each shape
-  // deleting currently selected shape?
-  // note: when pushing to origin, squash commits first
+
+
+
+
+
   // make more use of useState(), or addHooks for changes
   
   /*
