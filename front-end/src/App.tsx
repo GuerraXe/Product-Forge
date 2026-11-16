@@ -1,26 +1,44 @@
 import { ControlPanel } from './components/ControlPanel'
 import { ResultsPanel } from './components/ResultsPanel'
 import { SceneCanvas } from './components/SceneCanvas'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import './styles/app.css'
 import { Part, type Shape} from './lib/types'
+import * as THREE from 'three';
 
 function App() {
-  // slow in theory, though I don't care about time complexity 
-  // if there's gonna be less than 500 parts in practice
+  // slow in theory, need to refactor to better data structure
   const sceneParts = useRef<Part[]>([]);
-  const selectedPartId = useRef<string>(null);
+  
+  // TODO: id should be a reference to a part instead
+  const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
 
   const addPart = (shape: Shape | undefined) => {
     const newPart: Part = new Part();
     newPart.shape = shape ?? "cube";
     sceneParts.current.push(newPart);
-    selectedPartId.current = newPart.id;
+    setSelectedPartId(newPart.id);
   }
 
+  // linear search is fine for mvp, but may need changing later on
   const getPart = (idToFind: string | null) => {
     const f = sceneParts.current.find( value => value.id === idToFind );
     return f ? f : null;
+  }
+
+  const setPosition = (vec: THREE.Vector3) => {
+    const part = getPart(selectedPartId);
+    if (part) part.position = vec;
+  }
+
+  const setRotation = (vec: THREE.Vector3) => {
+    const part = getPart(selectedPartId);
+    if (part) part.rotation = vec;
+  }
+
+  const setScale = (vec: THREE.Vector3) => {
+    const part = getPart(selectedPartId);
+    if (part) part.scale = vec;
   }
 
   return (
@@ -31,14 +49,22 @@ function App() {
           callbacks={ {
             onAddPart: addPart,
             onDeletePart: () => {},
-            onSetPosition: () => {},
-            onSetRotation: () => {},
-            onSetScale: () => {},
+            onSetPosition: setPosition,
+            onSetRotation: setRotation,
+            onSetScale: setScale,
             onSetMaterial: () => {},
           } } 
-          selectedPart={ getPart(selectedPartId.current) } />
+          selectedPart={ getPart(selectedPartId) } />
         <div className="scene-column">
-          <div className="scene-frame"><SceneCanvas /></div>
+          <div className="scene-frame"><SceneCanvas 
+            selectedId={selectedPartId}
+            onSelectPart={() => {}}
+            parts={sceneParts.current}
+            onSetPosition={() => {}}
+            onSetRotation={() => {}}
+            onSetScale={() => {}} 
+          />
+          </div>
           <ResultsPanel />
         </div>
       </section>

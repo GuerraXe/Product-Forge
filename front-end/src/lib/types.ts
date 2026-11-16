@@ -33,7 +33,7 @@ export class Part {
   shape: Shape;
   position: Vector3;
   scale: Vector3;
-  rotation: Vector3; // represented in degrees
+  rotation: Vector3; // represented in radians
   material: PartMaterialKey;
 
   constructor() {

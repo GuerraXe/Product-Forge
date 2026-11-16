@@ -2,7 +2,21 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import materials from '../materials.json'
+import { partMaterials, type Part } from '../lib/types';
+import { Canvas, useFrame } from '@react-three/fiber';
+import * as drei from '@react-three/drei';
 
+interface SceneCanvasProps {
+  selectedId: string | null;
+  onSelectPart: (id: string | null) => void;
+  parts: Part[];
+
+  // propagate changes up for control panel
+  onSetPosition: (id: string, pos: THREE.Vector3) => void,
+  onSetRotation: (id: string, rot: THREE.Vector3) => void,
+  onSetScale: (id: string, scl: THREE.Vector3) => void,
+}
+/*
 export function SceneCanvas() {
   const host = useRef<HTMLDivElement>(null)
 
@@ -39,8 +53,8 @@ export function SceneCanvas() {
 
     //Watches div size to handle resizes
     const resize = () => {
-      const width = host.current.clientWidth
-      const height = host.current.clientHeight
+      const width = host.current?.clientWidth
+      const height = host.current?.clientHeight
       if (!width || !height) return
       camera.aspect = width / height
       camera.updateProjectionMatrix()
@@ -61,4 +75,96 @@ export function SceneCanvas() {
   }, [])
 
   return <div className="scene-canvas" ref={host} />
+}
+*/
+function createPartGeometry(part: Part) {
+  switch (part.shape) {
+  case 'cube':
+    return (<boxGeometry args={[1, 1, 1]}/>);
+  case 'sphere':
+    // radius, w and h segments
+    return (<sphereGeometry args={[1, 32, 32]}/>);
+  case 'cylinder':
+    // rad top and bot, w segments
+    return (<cylinderGeometry args={[1, 1, 1, 32]}/>);
+  default:
+    return null;
+  }
+}
+
+function Vector3ToEuler(vec: THREE.Vector3) {
+  return new THREE.Euler(vec.x, vec.y, vec.z);
+}
+
+
+
+export function SceneCanvas(props: SceneCanvasProps) {
+  // const camera = new THREE.PerspectiveCamera(45);
+  // camera.position.set(10, 7, 10);
+
+  interface PartModelArgs {
+    part: Part; 
+    onSelect: (id: string) => void 
+  }
+
+  function PartModel({ part, onSelect }: PartModelArgs) {
+    const meshRef = useRef<THREE.Mesh>(null!);
+
+    const onChange = () => {
+      if (!meshRef.current) return;
+      props.onSetPosition(part.id, part.position);
+      props.onSetRotation(part.id, part.rotation);
+      props.onSetScale(part.id, part.scale);
+    }
+
+    // bypass having more messy prop drilling 
+    useFrame(() => {
+      if (!meshRef.current) return;
+
+      meshRef.current.position.x = part.position.x;
+      meshRef.current.position.y = part.position.y;
+      meshRef.current.position.z = part.position.z;
+
+      meshRef.current.rotation.x = part.rotation.x;
+      meshRef.current.rotation.y = part.rotation.y;
+      meshRef.current.rotation.z = part.rotation.z;
+
+      meshRef.current.scale.x = part.scale.x;
+      meshRef.current.scale.y = part.scale.y;
+      meshRef.current.scale.z = part.scale.z;
+    })
+
+    return (
+      <mesh 
+        key={part.id} 
+        ref={meshRef}
+        position={part.position}
+        rotation={Vector3ToEuler(part.rotation)}
+        scale={part.scale}
+        onClick={ e => { e.stopPropagation(); onSelect(part.id) } }
+      >
+        <meshStandardMaterial color={partMaterials[part.material].color}/>
+        {createPartGeometry(part)}
+        {/* attaching transform controls TBD */}  
+      </mesh>
+    );
+  }
+
+  return (
+    <Canvas 
+      onPointerMissed={() => props.onSelectPart(null)}
+      // camera={camera}
+    >
+      <axesHelper args={[5]}/>
+      <ambientLight intensity={0.75} />
+      <directionalLight position={[0, 1000000, 0]} intensity={1}/>
+      <drei.OrbitControls 
+        makeDefault 
+        target={new THREE.Vector3(0, 1, 0)}
+        maxPolarAngle={Math.PI}
+        enableDamping={false}
+      />
+      { props.parts.map( part => <PartModel part={part} onSelect={props.onSelectPart} /> ) }
+    </Canvas>
+  );
 }

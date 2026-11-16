@@ -19,6 +19,9 @@ interface ControlPanelProps {
   selectedPart: Part.Part | null;
 }
 
+
+// TODO: adding or selecting a part should update fields in control panel 
+// (selectedPart value updates as it is a state)
 export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
   const selectedNewPartShape = useRef<Part.Shape>("cube");
 
@@ -49,41 +52,40 @@ export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
 
   const onPosChange = (axis: Axis, rawVal: string) => {
     if (!selectedPart) return;
-    // Fallback
     const num = parseFloat(rawVal);
-    const value = Number.isNaN(num) ? 0 : num;
+    if (Number.isNaN(num)) return;
     const next = selectedPart.position.clone();
-    next[axis] = value;
+    next[axis] = num;
     callbacks.onSetPosition(next);
   };
 
   const onRotChange = (axis: Axis, rawVal: string) => {
     if (!selectedPart) return;
-    // Fallback
     const num = parseFloat(rawVal);
-    const value = Number.isNaN(num) ? 0 : num;
+    if (Number.isNaN(num)) return;
     const next = selectedPart.rotation.clone();
-    next[axis] = value;
+    next[axis] = num;
     callbacks.onSetRotation(next);
   };
 
   const onSclChange = (axis: Axis, rawVal: string) => {
     if (!selectedPart) return;
-    // Fallback
     const num = parseFloat(rawVal);
-    const value = Number.isNaN(num) ? 0 : num;
+    if (Number.isNaN(num)) return;
     const next = selectedPart.scale.clone();
-    next[axis] = value;
-    callbacks.onSetRotation(next);
+    next[axis] = num;
+    callbacks.onSetScale(next);
   };
 
   const vec3Fields = (prop: "position" | "rotation" | "scale", onChange: (axis: Axis, rawVal: string) => void) => {
     return (['x', 'y', 'z'] as Axis[]).map( axis =>
-      <label>{axis}:&nbsp;<input 
+      <label key={axis}>{axis}:&nbsp;<input 
         type="number"
-        step="0.1"
-        value={selectedPart ? selectedPart[prop][axis] : ""}
-        onChange={e => onChange(axis as Axis, e.target.value)}
+        step={0.1}
+        defaultValue={selectedPart ? selectedPart[prop][axis] : ""}
+        onChange={e => {
+          onChange(axis as Axis, e.target.value);
+        }}
       /></label>
     )
   }
@@ -120,7 +122,7 @@ export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
         <legend>Position</legend>
         {vec3Fields("position", onPosChange)}
       </fieldset>
-      {/* TODO: format rotation as euler angles in degrees for now */}
+      {/* TODO: format rotation as euler angles in radians for now */}
       <fieldset disabled={!selectedPart}>
         <legend>Rotation</legend>
         {vec3Fields("rotation", onRotChange)}
@@ -136,11 +138,12 @@ export function ControlPanel( { callbacks, selectedPart } : ControlPanelProps) {
       <select 
         id="material-select" 
         disabled={!selectedPart}
+        value={selectedPart ? selectedPart.material : ""}
         onChange={e => onMaterialChange(e.target.value)}
       >
         <option value="" disabled>--Select Material--</option>
         {partMaterialKeys.map(key => 
-          (<option value={key}> 
+          (<option key={key} value={key}> 
             {key.charAt(0).toUpperCase() + key.slice(1)} 
           </option>)
         )}
