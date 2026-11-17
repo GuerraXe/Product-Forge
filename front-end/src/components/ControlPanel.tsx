@@ -146,20 +146,4 @@ export function ControlPanel( { dispatch, selectedPart } : ControlPanelProps) {
     </section>
   </section>
   );
-
-
-
-
-
-
-  // make more use of useState(), or addHooks for changes
-  
-  /*
-    - track the currently selected shape
-    - if the user updates a field in the control panel, make a call
-    for the listening canvas. the canvas should update from a listening connection
-    - if the canvas detects a change from user (user drags or moves), then
-    send info about that change to the control panel, which updates one or all properties
-  */
-
 }
