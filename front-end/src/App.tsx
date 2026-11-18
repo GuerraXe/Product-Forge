@@ -128,15 +128,12 @@ function App() {
     const actionType = "setTransformMode";
     switch(e.key) {
       case '1':
-        // setTransformMode("translate");
         dispatch({type: actionType, mode: "translate"});
         break;
       case '2':
-        // setTransformMode("rotate");
         dispatch({type: actionType, mode: "rotate"});
         break;
       case '3':
-        // setTransformMode("scale");
         dispatch({type: actionType, mode: "scale"});
         break;
       default:
@@ -149,7 +146,15 @@ function App() {
       tabIndex={-1} // enable programmatic tab focus so onKeyUp works
       onKeyUp={onKeyUp}
     >
-      <header className="topbar">Dummy text</header>
+      <header className="topbar">
+        <h1>Product Forge</h1>
+        <div className='control-label'>
+          [LMB]: Select Part or Orbit Camera | [RMB]: Drag Camera | [MMB]: Zoom In/Out
+        </div> 
+        <div className='control-label'>
+          [1]: Translate | [2]: Rotate | [3] Scale
+        </div>
+      </header>
       <section className="no-top">
         <ControlPanel dispatch={dispatch} selectedPart={getPart(state.selectedPartId)}/>
         <div className="scene-column">

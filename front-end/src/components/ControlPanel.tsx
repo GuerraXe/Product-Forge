@@ -43,8 +43,8 @@ export function ControlPanel( { dispatch, selectedPart } : ControlPanelProps) {
   // callback using the dispatches defined in app.tsx
   const onVecPropChange = (prop: VectorProperty, axis: Axis, input: string) => {
     if (!selectedPart) return;
-    const num = parseFloat(input);
-    if (Number.isNaN(num)) return;
+    let num = parseFloat(input);
+    if (Number.isNaN(num)) num = 0;
 
     const next = selectedPart[prop].clone();
     next[axis] = num;

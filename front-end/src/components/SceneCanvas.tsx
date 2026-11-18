@@ -16,25 +16,34 @@ interface SceneCanvasProps {
   onSetScale: (id: string, scl: THREE.Vector3) => void,
 }
 
+// to be moved to a different file, or perhaps as a method of the Part class
 function createPartGeometry(part: Part) {
   switch (part.shape) {
   case 'cube':
-    return (<boxGeometry args={[2, 2, 2]}/>);
+    return (<boxGeometry args={[1, 1, 1]}/>);
   case 'sphere':
     // radius, w and h segments
-    return (<sphereGeometry args={[1, 32, 32]}/>);
+    return (<sphereGeometry args={[0.5, 32, 32]}/>);
   case 'cylinder':
     // rad top and bot, w segments
-    return (<cylinderGeometry args={[1, 1, 1, 32]}/>);
+    return (<cylinderGeometry args={[0.5, 0.5, 1, 32]}/>);
   default:
     return null;
   }
 }
 
+// helper function
 function Vector3ToEuler(vec: THREE.Vector3) {
   return new THREE.Euler(vec.x, vec.y, vec.z);
 }
 
+/**
+ * props argument to be refactored to only need state and dispatch,
+ * which requires refactoring functions that rely on current args
+ * 
+ * @param props holds references to the parent appstate and callback functions
+ * @returns SceneCanvas component
+ */
 export function SceneCanvas(props: SceneCanvasProps) {
   // const camera = new THREE.PerspectiveCamera(45);
   // camera.position.set(10, 7, 10);
