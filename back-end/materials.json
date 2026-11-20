@@ -1,5 +1,5 @@
-[
-    {"Material": "Oak"},
-    {"Material": "PLA"},
-    {"Material": "Aluminum"}
-]
+{
+    "wood": {"Density": 0.6, "Yield-Strength": 5.31, "Ultimate-Strength": 5.31},
+    "aluminum": {"Density": 2.6989, "Yield-Strength": 34, "Ultimate-Strength": 90},
+    "plastic": {"Density": 1.30, "Yield-Strength": 45.2, "Ultimate-Strength": 57.3}
+}
