@@ -1,0 +1,11 @@
+{
+  "wood": {
+    "color": "#C19A6B"
+  },
+  "aluminum": {
+    "color": "#A9A9A9"
+  },
+  "plastic": {
+    "color": "#c87ff5"
+  }
+}
