@@ -4,3 +4,6 @@ Introduced a window to see the object that the user would work with along with l
 
 # 11/14/2026
 Created a results display component that reads off of a json file on the backend. Used a dummy json file for now but can easily configure based off of what the backend team provides.
+
+# 11/23/2026
+Changed the backend to be a stdlib HTTP server exposing POST /analyze. Used a constant value for force applied which can be changed as needed. Server starts when runnning main.py.

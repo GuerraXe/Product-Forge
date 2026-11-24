@@ -172,7 +172,7 @@ function App() {
               // dispatch={dispatch}
             />
           </div>
-          <ResultsPanel />
+          <ResultsPanel selectedPart={getPart(state.selectedPartId)} />
         </div>
       </section>
     </main>
