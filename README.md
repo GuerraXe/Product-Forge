@@ -8,7 +8,7 @@ Node version: v22.16.0
 
 
 ## Installation
-
+Run 'npm install' in the frontend directory to install the node packages. Then spin up the frontend with 'npm run dev' and the backend endpoint by running the main file.
 
 ## Usage
 
