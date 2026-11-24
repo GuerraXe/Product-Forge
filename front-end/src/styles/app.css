@@ -1,6 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap');
+
 :root {
-  --line: #000000;
+  --background: #2D4751;
+  --surface: #E8DFCD;
+  --line: #526c74;
+  --text: #E8DFCD;
+  --ink: #2D4751;
   --panel-border: 1px solid var(--line);
+  font-family: Garamond, "Apple Garamond", "Times New Roman", serif;
 }
 
 * { box-sizing: border-box; }
@@ -9,8 +16,21 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  color: #000000;
-  background: #ffffff;
+  color: var(--text);
+  background: var(--background);
+}
+
+h1, h2, h3, legend {
+  font-family: "UnifrakturMaguntia", Garamond, "Times New Roman", serif;
+}
+
+.control-panel h2,
+.control-panel h3 {
+  font-family: "UnifrakturMaguntia", Garamond, "Times New Roman", serif;
+}
+
+.control-panel legend {
+  font-family: Garamond, "Apple Garamond", "Times New Roman", serif;
 }
 
 .workspace {
@@ -28,6 +48,20 @@ body {
   align-items: center;
   border: var(--panel-border);
   flex-shrink: 0;
+  padding: 0 16px;
+  color: var(--text);
+}
+
+.topbar h1 {
+  margin: 0;
+}
+
+.brand-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  margin-right: 14px;
+  border-radius: 50%;
 }
 
 .no-top {
@@ -53,6 +87,7 @@ body {
   align-items: flex-start;
   max-height: calc(100vh - 76px);
   overflow-y: auto;
+  background: #354f58;
 }
 
 .control-panel h2,
@@ -84,7 +119,8 @@ body {
   height: 1rem;
   padding: .75  rem;
   margin: 0 0 .5rem 0;
-  background-color: #eeeeee;
+  background-color: var(--surface);
+  color: var(--ink);
 }
 
 .control-panel .sub-panel {
@@ -116,4 +152,10 @@ body {
   border: var(--panel-border);
   display: flex;
   align-items: center;
+  color: var(--text);
+  background: #354f58;
+}
+
+input, select, button {
+  font: inherit;
 }

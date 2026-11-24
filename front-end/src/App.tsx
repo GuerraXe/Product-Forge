@@ -6,6 +6,7 @@ import './styles/app.css'
 import { Part, type Shape} from './lib/types'
 import type * as Forge from './lib/types'
 import * as THREE from 'three';
+import logo from './components/logo.png'
 
 /*
  * React's paradigm centers around declarative programming, that is, 
@@ -147,6 +148,7 @@ function App() {
       onKeyUp={onKeyUp}
     >
       <header className="topbar">
+        <img className="brand-logo" src={logo} alt="Product Forge logo" />
         <h1>Product Forge</h1>
         <div className='control-label'>
           [LMB]: Select Part or Orbit Camera | [RMB]: Drag Camera | [MMB]: Zoom In/Out
