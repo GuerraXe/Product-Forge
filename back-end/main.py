@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
@@ -64,13 +65,31 @@ class ResultsHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
 
+class ResultsServer(HTTPServer):
+    # On Windows, address reuse lets a second server start on a port that's already
+    # in use, so two backends could silently share port 8000. Turn it off there.
+    allow_reuse_address = os.name != "nt"
+
+
 if __name__ == "__main__":
     # "python main.py --test" runs the self-test instead of starting the server
     if "--test" in sys.argv:
         sys.exit(test_functions())
 
+    try:
+        server = ResultsServer(("127.0.0.1", 8000), ResultsHandler)
+    except OSError:
+        print("Port 8000 is already in use. Is the backend already running in another terminal?")
+        sys.exit(1)
+
     print("Results API listening on http://127.0.0.1:8000")
-    HTTPServer(("127.0.0.1", 8000), ResultsHandler).serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        # Ctrl+C: stop quietly
+        pass
+    finally:
+        server.server_close()
 
 # DISCLAIMER: densities, yield/ultimate-strengths are averaged for simplicity (strengths measured in MPa)
 #             data is sourced & averaged from matweb & amesweb : https://www.matweb.com/index.aspx, https://amesweb.info/Materials/Aluminum-Yield-Tensile-Strength.aspx
