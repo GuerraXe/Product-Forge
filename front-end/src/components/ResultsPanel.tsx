@@ -14,16 +14,18 @@ interface ResultsPanelProps {
   selectedPart: Part | null;
 }
 
+// results (or an error) for the part they were requested for
+interface Outcome {
+  part: Part;
+  results: Results | null;
+  error: string | null;
+}
+
 export function ResultsPanel({ selectedPart }: ResultsPanelProps) {
-  const [results, setResults] = useState<Results | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
 
   useEffect(() => {
-    if (!selectedPart) {
-      setResults(null);
-      setError(null);
-      return;
-    }
+    if (!selectedPart) return;
 
     const controller = new AbortController();
     const partData = {
@@ -48,29 +50,34 @@ export function ResultsPanel({ selectedPart }: ResultsPanelProps) {
         return data as Results;
       })
       .then(data => {
-        setResults(data);
-        setError(null);
+        setOutcome({ part: selectedPart, results: data, error: null });
       })
       .catch(reason => {
         if (reason.name !== 'AbortError') {
-          setResults(null);
-          setError(reason instanceof Error ? reason.message : 'Could not calculate results');
+          const message = reason instanceof Error ? reason.message : 'Could not calculate results';
+          setOutcome({ part: selectedPart, results: null, error: message });
         }
       });
 
     return () => controller.abort();
   }, [selectedPart]);
 
+  // only show an outcome if it belongs to the part that's selected now
+  const current = outcome && outcome.part === selectedPart ? outcome : null;
+  const results = current?.results;
+
   return <section className="results-panel">
     <div>
-      {error && <p>{error}</p>}
       {!selectedPart && <p>Select a shape to view results.</p>}
+      {selectedPart && !current && <p>Calculating...</p>}
+      {current?.error && <p>{current.error}</p>}
       {results && <>
-        <p>Volume: {results.volume}</p>
-        <p>Mass: {results.mass}</p>
-        <p>Cross-sectional Area: {results['cross-section']}</p>
-        <p>Stress: {results.stress}</p>
-        <p>Safety Factor: {results.safety}</p>
+        <p>Volume: {results.volume.toFixed(2)} cm³</p>
+        <p>Mass: {results.mass.toFixed(2)} g</p>
+        <p>Cross-sectional Area: {results['cross-section'].toFixed(2)} cm²</p>
+        <p>Stress: {results.stress.toFixed(4)} MPa</p>
+        <p>Safety Factor: {results.safety.toFixed(2)}</p>
+        <p>Status: {results.is_safe ? 'Safe' : 'Not safe'}</p>
       </>}
     </div>
   </section>;

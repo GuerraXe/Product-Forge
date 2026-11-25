@@ -92,9 +92,18 @@ export function SceneCanvas(props: SceneCanvasProps) {
           {createPartGeometry(part)}
         </mesh>
         {isSelected && (
-          <drei.TransformControls 
+          <drei.TransformControls
             object={meshRef}
             mode={mode}
+            // when a drag ends, push the mesh's transforms into app state
+            // so the control and results panels see the change
+            onMouseUp={() => {
+              const mesh = meshRef.current;
+              if (!mesh) return;
+              props.onSetPosition(part.id, mesh.position.clone());
+              props.onSetRotation(part.id, new THREE.Vector3(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z));
+              props.onSetScale(part.id, mesh.scale.clone());
+            }}
           />
         )}  
       </>
